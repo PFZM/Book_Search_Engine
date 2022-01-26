@@ -8,7 +8,6 @@ const resolvers = {
         return User.findOne({ username });
       } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Error finding the usser" });
       }
     },
   },
@@ -21,7 +20,6 @@ const resolvers = {
         return { token, user };
       } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Error adding the user" });
       }
     },
 
@@ -43,15 +41,34 @@ const resolvers = {
         return { token, user };
       } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Error logging in" });
       }
     },
 
-    saveBook: async (root, { user, body }) => {
+    saveBook: async (root, { bookId }, context) => {
       try {
+        if (context.user) {
+          const updateUser = await User.findByIdAndUpdate(
+            { _id: context.user._id },
+            { $addToSet: { savedBooks: { bookId } } }
+          );
+          return updateUser;
+        }
+        throw new AuthenticationError("You need to be logged in!");
       } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Error logging in" });
+      }
+    },
+    removeBook: async (root, { bookId }, context) => {
+      try {
+        if (context.user) {
+          const updateUser = await User.findByIdAndUpdate(
+            { _id: context.user._id },
+            { $pull: { savedBooks: { bookId } } }
+          );
+          return updateUser;
+        }
+      } catch (err) {
+        console.error(err);
       }
     },
   },
