@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   Jumbotron,
   Container,
@@ -14,12 +14,11 @@ import Auth from "../utils/auth";
 import { removeBookId } from "../utils/localStorage";
 
 const SavedBooks = () => {
-  const [userData, setUserData] = useState({});
   const { loading, data } = useQuery(GET_ME);
   const userData = data?.userData || [];
 
-  const [removeBook, { error, data }] = useMutation(REMOVE_BOOK);
-  // create function that accepts the book's mongo _id value as param and deletes the book from the database
+  const [removeBook, { error }] = useMutation(REMOVE_BOOK);
+
   const handleDeleteBook = async (bookId) => {
     const token = Auth.loggedIn() ? Auth.getToken() : null;
 
@@ -28,18 +27,16 @@ const SavedBooks = () => {
     }
 
     try {
-      await removeBook({
-        variable: { bookID },
+      const { data } = await removeBook({
+        variable: { bookId },
       });
 
-      // upon success, remove book's id from localStorage
       removeBookId(bookId);
     } catch (err) {
       console.error(err);
     }
   };
 
-  // if data isn't here yet, say so
   if (loading) {
     return <h2>LOADING...</h2>;
   }
