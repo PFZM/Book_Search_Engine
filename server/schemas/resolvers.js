@@ -4,24 +4,22 @@ const { signToken } = require("../utils/auth");
 
 const resolvers = {
   Query: {
-    user: async (root, { username }) => {
-      try {
-        return User.findOne({ username });
-      } catch (err) {
-        console.error(err);
+    me: async (parent, args, context) => {
+      if (context.user) {
+        const userData = await User.findOne({ _id: context.user._id }).select(
+          "-__v -password"
+        );
+        return userData;
       }
+      throw new AuthenticationError("You need to be logged in!");
     },
   },
 
   Mutation: {
-    addUser: async (root, { username, email, password }) => {
-      try {
-        const user = await User.create({ username, email, password });
-        const token = signToken(user);
-        return { token, user };
-      } catch (err) {
-        console.error(err);
-      }
+    addUser: async (parent, args) => {
+      const user = await User.create(args);
+      const token = signToken(user);
+      return { token, user };
     },
 
     login: async (root, { email, password }) => {
@@ -45,12 +43,12 @@ const resolvers = {
       }
     },
 
-    saveBook: async (root, { bookId }, context) => {
+    saveBook: async (root, { bookID }, context) => {
       try {
         if (context.user) {
           const updateUser = await User.findByIdAndUpdate(
             { _id: context.user._id },
-            { $addToSet: { savedBooks: { bookId } } },
+            { $push: { savedBooks: { bookID } } },
             { new: true }
           );
           return updateUser;
@@ -60,12 +58,12 @@ const resolvers = {
         console.error(err);
       }
     },
-    removeBook: async (root, { bookId }, context) => {
+    removeBook: async (root, { bookID }, context) => {
       try {
         if (context.user) {
           const updateUser = await User.findByIdAndUpdate(
             { _id: context.user._id },
-            { $pull: { savedBooks: { bookId } } },
+            { $pull: { savedBooks: { bookID } } },
             { new: true }
           );
           return updateUser;

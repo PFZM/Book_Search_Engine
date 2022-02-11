@@ -19,7 +19,7 @@ const SavedBooks = () => {
 
   const [removeBook, { error }] = useMutation(REMOVE_BOOK);
 
-  const handleDeleteBook = async (bookId) => {
+  const handleDeleteBook = async (bookID) => {
     const token = Auth.loggedIn() ? Auth.getToken() : null;
 
     if (!token) {
@@ -28,10 +28,10 @@ const SavedBooks = () => {
 
     try {
       const { data } = await removeBook({
-        variable: { bookId },
+        variable: { bookID },
       });
 
-      removeBookId(bookId);
+      removeBookId(bookID);
     } catch (err) {
       console.error(err);
     }
@@ -59,7 +59,7 @@ const SavedBooks = () => {
         <CardColumns>
           {userData.savedBooks.map((book) => {
             return (
-              <Card key={book.bookId} border="dark">
+              <Card key={book.bookID} border="dark">
                 {book.image ? (
                   <Card.Img
                     src={book.image}
@@ -73,7 +73,7 @@ const SavedBooks = () => {
                   <Card.Text>{book.description}</Card.Text>
                   <Button
                     className="btn-block btn-danger"
-                    onClick={() => handleDeleteBook(book.bookId)}
+                    onClick={() => handleDeleteBook(book.bookID)}
                   >
                     Delete this Book!
                   </Button>
