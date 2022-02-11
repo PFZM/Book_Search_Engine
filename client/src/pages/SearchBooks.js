@@ -17,12 +17,10 @@ import { SAVE_BOOK } from "../utils/mutations";
 
 const SearchBooks = () => {
   const [searchedBooks, setSearchedBooks] = useState([]);
-
   const [searchInput, setSearchInput] = useState("");
+  const [savedBookIds, setSavedBookIds] = useState(getSavedBookIds());
 
   const [saveBook, { error }] = useMutation(SAVE_BOOK);
-
-  const [savedBookIds, setSavedBookIds] = useState(getSavedBookIds());
 
   useEffect(() => {
     return () => saveBookIds(savedBookIds);
@@ -41,13 +39,13 @@ const SearchBooks = () => {
       );
 
       if (!response.ok) {
-        throw new Error("something went wrong!");
+        throw new Error("Something went wrong!");
       }
 
       const { items } = await response.json();
 
       const bookData = items.map((book) => ({
-        bookID: book.ID,
+        bookId: book.id,
         authors: book.volumeInfo.authors || ["No author to display"],
         title: book.volumeInfo.title,
         description: book.volumeInfo.description,
@@ -56,32 +54,6 @@ const SearchBooks = () => {
 
       setSearchedBooks(bookData);
       setSearchInput("");
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // create function to handle saving a book to our database
-  const handleSaveBook = async (bookID) => {
-    // find the book in `searchedBooks` state by the matching id
-    const bookToSave = searchedBooks.find(
-      (book) => book.bookID === savedBookIds
-    );
-
-    // get token
-    const token = Auth.loggedIn() ? Auth.getToken() : null;
-
-    if (!token) {
-      return false;
-    }
-
-    try {
-      const { data } = await saveBook({
-        variables: { ...bookToSave },
-      });
-
-      // if book successfully saves to user's account, save book id to state
-      setSavedBookIds([...savedBookIds, bookToSave.bookID]);
     } catch (err) {
       console.error(err);
     }
@@ -123,7 +95,7 @@ const SearchBooks = () => {
         <CardColumns>
           {searchedBooks.map((book) => {
             return (
-              <Card key={book.bookID} border="dark">
+              <Card key={book.bookId} border="dark">
                 {book.image ? (
                   <Card.Img
                     src={book.image}
@@ -138,13 +110,13 @@ const SearchBooks = () => {
                   {Auth.loggedIn() && (
                     <Button
                       disabled={savedBookIds?.some(
-                        (savedBookId) => savedBookId === book.bookID
+                        (savedBookId) => savedBookId === book.bookId
                       )}
                       className="btn-block btn-info"
-                      onClick={() => handleSaveBook(book.bookID)}
+                      onClick={() => handleSaveBook(book.bookId)}
                     >
                       {savedBookIds?.some(
-                        (savedBookId) => savedBookId === book.bookID
+                        (savedBookId) => savedBookId === book.bookId
                       )
                         ? "This book has already been saved!"
                         : "Save this Book!"}
